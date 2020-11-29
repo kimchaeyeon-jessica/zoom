@@ -6,11 +6,13 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <!--    linear layout: 추가한 레이아웃들을 일자로 나열(순서대로 프레임 레이아웃,버튼 레이아웃 등이 쌓임)-->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
 
+        <!--        이 공간에다가 카메라 미리보기를 출력시킴-->
         <FrameLayout
             android:id="@+id/camera_preview"
             android:layout_width="match_parent"
@@ -21,6 +23,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="촬영" />
+            android:onClick="changeCamera"
+            android:text="카메라 변경" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
