@@ -2,12 +2,15 @@ package com.zoomw.zoom.features.camera;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Rect;
+import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
@@ -73,13 +76,21 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
     @Override //화면 없어졌을 때 처리
     public void surfaceDestroyed(SurfaceHolder holder) {
+        try {
+            this.camera.stopPreview();
+            this.camera.setPreviewCallback(null);
+            this.camera.release();
+            this.camera = null;
+        }catch (Exception e){
 
+        }
     }
 
     //기존에 있던 미리보기를 새로운 미리 보기로 바꾸는 코드
     public void changeCamera(Camera newCamera) {
         try {
             this.camera.stopPreview();
+            this.camera.setPreviewCallback(null);
             this.camera.release();
             this.camera = null;
         } catch (Exception e) {
@@ -93,5 +104,6 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         } catch (Exception e) {
             Log.d("CameraPreview", "미리보기 변경 실패: " + e.getMessage());
         }
+
     }
 }
