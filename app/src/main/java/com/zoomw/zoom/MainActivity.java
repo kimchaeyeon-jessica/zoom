@@ -13,13 +13,17 @@ import android.hardware.Camera;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import com.zoomw.zoom.features.camera.CameraManager;
 import com.zoomw.zoom.features.camera.CameraPreview;
 import com.zoomw.zoom.features.camera.CameraStreamView;
+import com.zoomw.zoom.features.chat.ChatTextAdapter;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
@@ -33,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
     private static Camera camera;
 
     private List<CameraStreamView> streamViewList = new ArrayList<>();
+    private ChatTextAdapter chatTextAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,15 +70,12 @@ public class MainActivity extends AppCompatActivity {
         }
         //내가 현재 쓸 수 있는 카메라 불러옴
         Camera camera = manager.getCamera();
+
         cameraPreview = new CameraPreview(this, camera); //this가 메인엑티비티랑 카메라 넘겨줌
         FrameLayout preview = findViewById(R.id.camera_preview); //아까 만들어 놓은 framelayout가져옴
         preview.addView(cameraPreview);
-        this.camera = camera; //요청된 카메라 Activity에 보관
 
-        final CameraStreamView streamView = new CameraStreamView(this);
-        LinearLayout streamList = findViewById(R.id.stream_list);
-        streamList.addView(streamView);
-        this.streamViewList.add(streamView);
+        this.addStreamView(null);
 
         camera.setPreviewCallback(new Camera.PreviewCallback() {
             @Override
@@ -81,6 +83,16 @@ public class MainActivity extends AppCompatActivity {
                 MainActivity.this.updateStreamView(data, camera);
             }
         });
+
+        this.camera = camera; //요청된 카메라 Activity에 보관
+
+        this.chatTextAdapter = new ChatTextAdapter(this);
+        this.chatTextAdapter.addMessage("hello");
+
+        ListView chatList = new ListView(this);
+        chatList.setAdapter(this.chatTextAdapter);
+
+        preview.addView(chatList);
     }
 
     //switch-case 구문 사용
@@ -124,11 +136,21 @@ public class MainActivity extends AppCompatActivity {
 
     public void addStreamView(View view) {
         final CameraStreamView streamView = new CameraStreamView(this);
-        //streamView.initialize();지우기??
-
         this.streamViewList.add(streamView);
         LinearLayout streamLayout = findViewById(R.id.stream_list);
-        streamLayout.addView(streamView);
+        final LinearLayout userView = new LinearLayout(this); //등록하는 순서대로
+        userView.setOrientation(LinearLayout.VERTICAL);
+        Button closeButton = new Button(this);
+        userView.addView(streamView);
+        userView.addView(closeButton);
+        streamLayout.addView(userView);
+        closeButton.setText("종료");
+        closeButton.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                MainActivity.this.removeStreamView(userView,streamView);
+            }
+        });
     }
 
     public void updateStreamView(byte[] data,Camera camera){
@@ -146,5 +168,18 @@ public class MainActivity extends AppCompatActivity {
         for (CameraStreamView stream: this.streamViewList){
             stream.drawStream(bytes, parameters.getJpegThumbnailSize(), manager.isFrontCamera());
         }
+    }
+
+    public void removeStreamView(LinearLayout view, CameraStreamView streamView) {
+        LinearLayout streamLayout = findViewById(R.id.stream_list);
+        streamLayout.removeViewInLayout(view); //클릭하는 순간 미리보기(화면),리스트에서 삭제해줌 (게스트)
+        this.streamViewList.remove(streamView);
+    }
+
+    public void sendMessage(View view){
+        EditText editText = findViewById(R.id.message_edit); //i
+        String message = editText.getText().toString(); //string형태로 바꿔주기 위해 .toString
+        this.chatTextAdapter.addMessage(message);
+        this.chatTextAdapter.notifyDataSetChanged(); //데이터 바뀌었으니 새로
     }
 }
